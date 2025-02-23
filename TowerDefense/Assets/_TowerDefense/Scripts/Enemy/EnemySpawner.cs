@@ -1,49 +1,38 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
 {
-    public static EnemySpawner Instance {get; private set;}
-
     [Header("Spawner Settings")]
     public GameObject EnemyPrefab;
     public int MinEnemies = 3;
-    public int MaxEnemies = 7; 
+    public int MaxEnemies = 7;
 
-    private Transform SpawnPoint;
-
-    private List<GameObject> ActiveEnemies = new List<GameObject>();
-
-    void Awake()
+    private void Start()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(this);
-        }
-        Instance = this;
+        StartCoroutine(SpawnEnemies());
     }
 
-
-    public void SpawnEnemies(Transform _SpawnPoint)
+    public IEnumerator SpawnEnemies()
     {
-        SpawnPoint = _SpawnPoint;
-        int EnemyCount = Random.Range(MinEnemies, MaxEnemies);
-
-        for (int i = 0; i < EnemyCount; i++)
+        int enemyCount = Random.Range(MinEnemies, MaxEnemies);
+        for (int i = 0; i < enemyCount; i++)
         {
+            yield return new WaitForSeconds(1);
             SpawnEnemy();
         }
     }
 
     public void SpawnEnemy()
     {
-        GameObject newEnemy = Instantiate(EnemyPrefab, SpawnPoint.position, Quaternion.identity);
-        newEnemy.GetComponent<Enemy>().Speed = Random.Range(1, 5);
-        ActiveEnemies.Add(newEnemy);
-    }
+        GameObject newEnemyObject = Instantiate(EnemyPrefab, transform.position, Quaternion.identity);
+        Enemy newEnemy = newEnemyObject.GetComponent<Enemy>();
 
-    public List<GameObject> GetActiveEnemies()
-    {
-        return ActiveEnemies; 
+        if (newEnemy != null)
+        {
+            newEnemy.Speed = 2;
+            EnemyData.Instance.AddEnemy(newEnemy);
+        }
     }
 }

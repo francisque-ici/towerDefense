@@ -1,16 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class InputHandler : MonoBehaviour
 {
     public static InputHandler Instance {get; private set;}
     public static bool isInPlaceZone = false;
-
+    public static Vector3 MousePosition;
     public int MousePositionFix = 2;
+    public GameObject MouseTarget;
+    private bool isEnabled;
     
-    private Vector2 MousePosition;
-
     void Start()
     {
         if (Instance != null && Instance != this)
@@ -42,12 +43,13 @@ public class InputHandler : MonoBehaviour
         Collider2D[] HitColliders = Physics2D.OverlapPointAll(MousePosition);
         
         isInPlaceZone = false;
+        MouseTarget.transform.position = MousePosition + new Vector3(0, 0, -5);
 
         foreach (Collider2D Colliders in HitColliders)
         {
             if (Colliders.CompareTag("Placeable"))
             {
-                Debug.Log("Is in place zone");
+                isInPlaceZone = true;
                 return;
             }
         }
@@ -55,7 +57,17 @@ public class InputHandler : MonoBehaviour
 
     private void FixedUpdate()
     {
-        UpdateMouse();
+        if (isEnabled) UpdateMouse();
+    }
+
+    public void Enable()
+    {
+        isEnabled = true;
+    }
+
+    public void Disable()
+    {
+        isEnabled = false;
     }
 
 }

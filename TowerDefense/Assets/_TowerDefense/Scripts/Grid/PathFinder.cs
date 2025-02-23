@@ -18,7 +18,6 @@ public class PathFinder : MonoBehaviour
 
     public void NewPath(bool[,] Grid, Vector2Int Start, Vector2Int End)
     {
-
         int rows = Grid.GetLength(0);
         int cols = Grid.GetLength(1);
 
@@ -55,7 +54,6 @@ public class PathFinder : MonoBehaviour
         // Duyệt ngược lại để lấy đường đi từ end -> start
         if (CameFrom.ContainsKey(End))
         {
-            Debug.Log("EH");
             Vector2Int Step = End;
             while (Step != Start)
             {
@@ -64,11 +62,6 @@ public class PathFinder : MonoBehaviour
             }
             Path.Add(Start);
             Path.Reverse(); // Đảo ngược để có thứ tự start -> end
-        }
-
-        foreach (var step in Path)
-        {
-            Debug.Log($"({step.x}, {step.y})");
         }
     }
 
@@ -79,7 +72,6 @@ public class PathFinder : MonoBehaviour
 
     public List<Vector2Int> GetPath()
     {
-        Debug.Log(Path);
         return Path;
     }
 

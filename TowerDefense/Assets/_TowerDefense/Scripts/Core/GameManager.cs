@@ -1,45 +1,51 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    
-    public static GameManager Instance {get; private set;}
-    public List<GameObject> Maps = new List<GameObject>();
+    public static GameManager Instance { get; private set; }
 
-    public GameObject CurrentMap;
+    private LevelInfo selectedLevel;
 
-    void Start()
+    void Awake()
     {
         if (Instance != null && Instance != this)
         {
-            Destroy(this);
+            Destroy(gameObject);
+            return;
         }
         Instance = this;
-
-        NewGame();
     }
 
-    void NewGame()
+    // Khi UIManager chọn level, gọi GameManager
+    public void OnLevelSelected(LevelInfo Level)
     {
-        LoadMap();
+        Debug.Log($"📢 GameManager: Nhận tín hiệu chọn Level {Level.LevelID}");
+        selectedLevel = Level;
+        PrepareForNewGame();
     }
 
-    void LoadMap()
+    void PrepareForNewGame()
     {
-        int ChoosenIndex = UnityEngine.Random.Range(0, Maps.Count);
-        CurrentMap = Instantiate(Maps[ChoosenIndex], new Vector3(0, 0, 0), Quaternion.identity);
+        Debug.Log("🔸 GameManager: Chuẩn bị dữ liệu trước khi bắt đầu game...");
 
-        Vector3 BasePosition = CurrentMap.transform.Find("Base").position;
-        Vector3 SpawnPosition = CurrentMap.transform.Find("Spawn").position;
+        // Gọi LevelLoader để tạo map
+        GameObject loadedMap = LevelLoader.Instance.LoadLevel(selectedLevel.LevelID);
+        if (loadedMap == null) return;
 
-        GridManager.Instance.UpdateGrid(CurrentMap.transform.Find("PlaceZone").gameObject);
-        PathFinder.Instance.NewPath(GridManager.Grid, 
-        new Vector2Int(Mathf.RoundToInt(SpawnPosition.x - GridManager.StartCorner.x), Mathf.RoundToInt(SpawnPosition.y - GridManager.StartCorner.y)),
-        new Vector2Int(Mathf.RoundToInt(BasePosition.x - GridManager.StartCorner.x), Mathf.RoundToInt(BasePosition.y - GridManager.StartCorner.y))
+        // Cập nhật GridManager & PathFinder
+        Vector3 basePos = loadedMap.transform.Find("Base").position;
+        Vector3 spawnPos = loadedMap.transform.Find("Spawn").position;
+
+        GridManager.Instance.UpdateGrid(loadedMap.transform.Find("PlaceZone").gameObject);
+        PathFinder.Instance.NewPath(
+            GridManager.Grid,
+            new Vector2Int(Mathf.RoundToInt(spawnPos.x - GridManager.StartCorner.x), Mathf.RoundToInt(spawnPos.y - GridManager.StartCorner.y)),
+            new Vector2Int(Mathf.RoundToInt(basePos.x - GridManager.StartCorner.x), Mathf.RoundToInt(basePos.y - GridManager.StartCorner.y))
         );
 
-        EnemySpawner.Instance.SpawnEnemies(CurrentMap.transform.Find("Spawn"));
-    }
+        GameplayData.Instance.BaseHealth = selectedLevel.BaseHealth;
+        InputHandler.Instance.Enable();
 
+        Debug.Log($"✅ GameManager: Level {selectedLevel.LevelID} đã load xong!");
+    }
 }

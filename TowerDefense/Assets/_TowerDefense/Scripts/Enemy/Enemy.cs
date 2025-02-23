@@ -9,6 +9,7 @@ public class Enemy : MonoBehaviour
     public float Speed = 3.0f;
     public float Shield = 0;
     public float HealthRegen = 0;
+    public int Damage = 5;
     public int Reward;
 
     private float CurentHealth;
@@ -36,23 +37,34 @@ public class Enemy : MonoBehaviour
 
         Vector2Int WaypointPosition = Path[currentWaypoint];
         Vector3 TargetPosition = new Vector3(GridManager.StartCorner.x + WaypointPosition.x, GridManager.StartCorner.y + WaypointPosition.y, 0);
-        Debug.Log(TargetPosition);
         transform.position = Vector3.MoveTowards(transform.position, TargetPosition, Speed * Time.deltaTime);
 
-        // Nếu đến gần waypoint hiện tại, chuyển sang waypoint tiếp theo
         if (Vector3.Distance(transform.position, TargetPosition) < 0.01f)
         {
             currentWaypoint++;
             if (currentWaypoint >= Path.Count)
             {
-                Kill();
+                EnterBase();
             }
         }
     }
 
-    private void Kill()
+    private void EnterBase()
     {
-        EnemySpawner.Instance.SpawnEnemy();
-        Destroy(transform.gameObject);
+        GameplayData.Instance.BaseHealth -= Damage;
+        Kill();
+    }
+
+    public void TakeDamage(int Amount)
+    {
+        Health -= Amount;
+        if (Health < 1) Kill();
+        Debug.Log(Health);
+    }
+
+    public void Kill()
+    {
+        EnemyData.Instance.RemoveEnemy(this);
+        Destroy(gameObject);
     }
 }
